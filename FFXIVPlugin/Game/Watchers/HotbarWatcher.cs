@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Dalamud.Game;
-
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using XIVDeck.FFXIVPlugin.Base;
 using XIVDeck.FFXIVPlugin.Game.Managers;
@@ -17,7 +17,7 @@ public class HotbarWatcher : IDisposable {
         Injections.Framework.Update += this.OnGameUpdate;
     }
 
-    private unsafe void OnGameUpdate(Framework framework) {
+    private unsafe void OnGameUpdate(IFramework framework) {
         var hotbarModule =
             FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->
                 GetRaptureHotbarModule();
@@ -25,10 +25,10 @@ public class HotbarWatcher : IDisposable {
         List<MicroHotbarSlot> updatedSlots = new();
 
         for (var hotbarId = 0; hotbarId < 17; hotbarId++) {
-            var hotbar = hotbarModule->HotBar[hotbarId];
+            ref var hotbar = ref hotbarModule->HotBarsSpan[hotbarId];
                 
             for (var slotId = 0; slotId < 16; slotId++) {
-                var gameSlot = hotbar->Slot[slotId];
+                var gameSlot = hotbar.GetHotbarSlot((uint) slotId);
                 var cachedSlot = this._hotbarCache[hotbarId, slotId];
 
                 // We calculate IconB first so that we know what "appearance" the slot has. This allows us to optimize
