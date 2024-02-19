@@ -1,9 +1,8 @@
 ﻿using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Utility;
+using Dalamud.Utility;
 using ImGuiNET;
-using XIVDeck.FFXIVPlugin.Resources.Localization;
 using XIVDeck.FFXIVPlugin.Resources.Localization;
 using XIVDeck.FFXIVPlugin.Utils;
 
@@ -75,7 +74,7 @@ public class SetupNag : NagWindow {
         ImGui.TextColored(ImGuiColors.DalamudGrey, UIStrings.ForcedUpdateNag_SupportInfo);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Headset)) {
-            Dalamud.Utility.Util.OpenLink(Constants.GoatPlaceDiscord);
+            Util.OpenLink(Constants.GoatPlaceDiscord);
         }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(UIStrings.SetupNag_JoinDiscord); 
         
