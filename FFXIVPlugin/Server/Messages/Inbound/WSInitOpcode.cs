@@ -1,9 +1,13 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.Internal.Notifications;
 using EmbedIO.WebSockets;
 using Newtonsoft.Json;
 using XIVDeck.FFXIVPlugin.Base;
 using XIVDeck.FFXIVPlugin.Game.Chat;
+using XIVDeck.FFXIVPlugin.Resources.Localization;
 using XIVDeck.FFXIVPlugin.Resources.Localization;
 using XIVDeck.FFXIVPlugin.Server.Helpers;
 using XIVDeck.FFXIVPlugin.Server.Messages.Outbound;
@@ -49,12 +53,37 @@ public class WSInitOpcode : BaseInboundMessage {
         // version check behavior
         if (this.Mode is PluginMode.Plugin) {
             if (Injections.PluginInterface is {IsTesting: true, IsDev: false} && sdPluginVersion < xivPluginVersion) {
-                TestingUpdateNag.Show(); 
+                TestingUpdateNag.Show();
             } else if (sdPluginVersion < xivPluginVersion) {
-                DeferredChat.SendOrDeferMessage(VersionUtils.GenerateUpdateNagString(xivPluginVersion));
+                var n = Injections.NotificationManager.AddNotification(new Notification
+                {
+                    Title = UIStrings.WSInitOpcode_PluginUpdateAvailableNotificationTitle,
+                    Content = string.Format(UIStrings.WSInitOpcode_SDPluginUpdateNotificationBody, sdPluginVersion, xivPluginVersion),
+                    Type = NotificationType.Warning,
+                    Minimized = false,
+                    RespectUiHidden = false,
+                    InitialDuration = TimeSpan.FromSeconds(20),
+                });
+
+                n.Click += _ =>
+                {
+                    UiUtil.OpenXIVDeckGitHub($"/releases/tag/v{VersionUtils.GetCurrentMajMinBuild()}");
+                };
+
             } else if (sdPluginVersion > xivPluginVersion) {
-                var errorString = ErrorNotifier.BuildPrefixedString(UIStrings.WSInitOpcode_GamePluginOutdated);
-                DeferredChat.SendOrDeferMessage(errorString);
+                var n = Injections.NotificationManager.AddNotification(new Notification
+                {
+                    Title = UIStrings.WSInitOpcode_PluginUpdateAvailableNotificationTitle,
+                    Content = UIStrings.WSInitOpcode_GamePluginOutdated,
+                    Type = NotificationType.Warning,
+                    Minimized = false,
+                    RespectUiHidden = false,
+                    InitialDuration = TimeSpan.FromSeconds(20),
+                });
+
+                n.Click += _ => {
+                    Injections.PluginInterface.OpenPluginInstaller();
+                };
             }
         }
 
